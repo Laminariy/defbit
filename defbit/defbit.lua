@@ -1,15 +1,20 @@
+local event = require "defbit.event"
+local rpc = require "defbit.rpc"
+local shared = requiere "defbit.shared"
+
+
 local M = {}
 
-local function new_defbit(adress, port, connector, parser)
+local function new_defbit(address, port, connector, parser)
 	local defbit = {
-		adress = adress,
+		address = address,
 		port = port,
 		connector = connector,
 		parser = parser,
 
-		event = nil,
-		shared = nil,
-		rpc = nil
+		event = event.new_event(connector, parser),
+		shared = shared.new_shared(connector, parser),
+		rpc = rpc.new_rpc(connector, parser)
 	}
 
 	function defbit.update(self)
@@ -24,12 +29,12 @@ local function new_defbit(adress, port, connector, parser)
 end
 
 
-function M.connect(adress, port, connector, parser)
+function M.connect(address, port, connector, parser)
 
 	-- return new_defbit
 end
 
-function M.listen(adress, port, on_connect, connector, parser)
+function M.listen(port, on_connect, connector, parser)
 	-- on_connect(new_defbit)
 end
 

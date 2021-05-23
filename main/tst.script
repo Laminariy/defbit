@@ -3,7 +3,7 @@ local function tst()
 end
 
 function init(self)
-	local a = tst
+	--[[local a = tst
 	print(tst == a)
 
 	local b = {}
@@ -16,8 +16,28 @@ function init(self)
 	local c = setmetatable({}, b)
 
 	c['abc'] = 35
-	c.rt = 85
-	
+	c.rt = 85]]
+
+	-- client
+	local client = socket.connect('localhost', 8888)
+	print('sendind data')
+	client:send("hello\r\n")
+	local data = client:receive("*l")
+	print('server answer: '..data)
+	client:close()
+
+
+	-- server
+	--local server = socket.bind("*", 8888)
+	local server = socket.tcp()
+	server:bind("*", 8888)
+	server:listen()
+	print('server starts')
+	local client = server:accept()
+	local data = client:receive("*l")
+	print('client ask: '..data)
+	client:send(data.."\r\n")
+	client:close()
 end
 
 function final(self)
