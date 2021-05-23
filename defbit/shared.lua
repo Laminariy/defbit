@@ -1,8 +1,8 @@
 local M = {}
 
-function M.new_shared(connector, parser)
+function M.new_shared(connection, parser)
 	local shared = {
-		connector = connector,
+		connection = connection,
 		parser = parser
 	}
 

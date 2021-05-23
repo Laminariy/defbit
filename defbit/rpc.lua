@@ -1,8 +1,8 @@
 local M = {}
 
-function M.new_rpc(connector, parser)
+function M.new_rpc(connection, parser)
 	local rpc = {
-		connector = connector,
+		connection = connection,
 		parser = parser
 	}
 
