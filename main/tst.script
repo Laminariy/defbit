@@ -1,3 +1,6 @@
+local tcp_connector = require "defbit.connectors.tcp_connector"
+
+
 local function tst()
 	print('aaa')
 end
@@ -18,38 +21,43 @@ function init(self)
 	c['abc'] = 35
 	c.rt = 85]]
 
-	-- client
-	local client = socket.connect('localhost', 8888)
-	print('sendind data')
-	client:send("hello\r\n")
-	local data = client:receive("*l")
-	print('server answer: '..data)
-	client:close()
 
 
-	-- server
-	--local server = socket.bind("*", 8888)
-	local server = socket.tcp()
-	server:bind("*", 8888)
-	server:listen()
-	print('server starts')
-	local client = server:accept()
-	local data = client:receive("*l")
-	print('client ask: '..data)
-	client:send(data.."\r\n")
-	client:close()
+	-- tcp_client
+	self.client = tcp_connector.new_client(_, function(connector, data)
+		print('get server data: '..data)
+	end, _)
+	self.client:connect('localhost', 8888)
+	print('sending data to server')
+	self.client:send('hello from client!')
+
+	-- tcp_server
+	self.server = tcp_connector.new_server(function(client_socket)
+		self.client = tcp_connector.new_client(_, function(connector, data)
+			print('get client data: '..data)
+			connector:send(data)
+		end, _)
+		self.client:connect(_,_, client_socket)
+	end)
+	self.server:start(8888, 8)
 end
 
 function final(self)
-	-- Add finalization code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
+	-- tcp_client
+	self.client:disconnect()
+
+	-- tcp_server
+	self.server:stop()
 end
 
 function update(self, dt)
-	-- Add update code here
-	-- Learn more: https://defold.com/manuals/script/
-	-- Remove this function if not needed
+	-- tcp_client
+	if self.client then
+		self.client:update()
+	end
+
+	-- tcp_server
+	self.server:update()
 end
 
 function on_message(self, message_id, message, sender)

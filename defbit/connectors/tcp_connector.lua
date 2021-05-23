@@ -23,7 +23,7 @@ function M.new_server(on_connect)
 			local client_socket, err = self.server_socket:accept()
 			if client_socket then 
 				client_socket:settimeout(0)
-				self.on_connect(self, client_socket)
+				self.on_connect(client_socket)
 			end
 		end
 	end
@@ -80,7 +80,7 @@ function M.new_client(on_connect, on_message, on_disconnect)
 
 	function client.update(self)
 		if self.client_socket then
-			local read, write = socket.select(self.client_socket, self.client_socket, 0)
+			local read, write = socket.select({self.client_socket}, {self.client_socket}, 0)
 
 			if read[self.client_socket] then
 				local data, err, partial = self.client_socket:receive("*l")
