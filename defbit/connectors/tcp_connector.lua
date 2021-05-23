@@ -40,12 +40,11 @@ end
 
 
 
-function M.new_client(on_connect, on_message, on_disconnect)
+function M.new_client(on_message, on_disconnect)
 	local client = {
 		queue = {},
 		loaded_data = "",
 
-		on_connect = on_connect,
 		on_message = on_message,
 		on_disconnect = on_disconnect
 	}
@@ -53,9 +52,6 @@ function M.new_client(on_connect, on_message, on_disconnect)
 	function client.connect(self, address, port, client_socket)
 		if client_socket then
 			self.client_socket = client_socket
-			if self.on_connect then
-				self.on_connect(self)
-			end
 			return true
 		end
 
@@ -66,9 +62,6 @@ function M.new_client(on_connect, on_message, on_disconnect)
 		end
 		client_socket:settimeout(0)
 		self.client_socket = client_socket
-		if self.on_connect then
-			self.on_connect(self)
-		end
 		return true
 	end
 
@@ -93,6 +86,9 @@ function M.new_client(on_connect, on_message, on_disconnect)
 				end
 				if err and err == "closed" then
 					self:disconnect()
+					if self.on_disconnect then
+						self.on_disconnect(self)
+					end
 				end
 			end
 
@@ -110,6 +106,9 @@ function M.new_client(on_connect, on_message, on_disconnect)
 					end
 					if err and err == "closed" then
 						self:disconnect()
+						if self.on_disconnect then
+							self.on_disconnect(self)
+						end
 					end
 				end
 			end
@@ -122,9 +121,6 @@ function M.new_client(on_connect, on_message, on_disconnect)
 			self.client_socket = nil
 			self.queue = {}
 			self.loaded_data = ""
-			if self.on_disconnect then
-				self.on_disconnect(self)
-			end
 		end
 	end
 
