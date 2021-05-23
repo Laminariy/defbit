@@ -1,4 +1,5 @@
 local tcp_connector = require "defbit.connectors.tcp_connector"
+require "defbit.parsers.data_dumper"
 
 
 local function tst()
@@ -24,7 +25,7 @@ function init(self)
 
 
 	-- tcp_client
-	self.client = tcp_connector.new_client(_, function(connector, data)
+	--[[self.client = tcp_connector.new_client(_, function(connector, data)
 		print('get server data: '..data)
 	end, _)
 	self.client:connect('localhost', 8888)
@@ -39,25 +40,59 @@ function init(self)
 		end, _)
 		self.client:connect(_,_, client_socket)
 	end)
-	self.server:start(8888, 8)
+	self.server:start(8888, 8)]]
+
+
+	--[[local tbl = {
+		a = 5,
+		b = 8.7786,
+		c = "hello",
+		type = true,
+		1, 8,
+		foo = function(a,b,c)
+			print(a,b,c)
+		end
+	}
+	local dmp_tbl = DataDumper(tbl, _, true)
+	print(dmp_tbl)
+	print(#dmp_tbl)
+	local undmp_tbl = loadstring(dmp_tbl)()
+	for k, v in pairs(undmp_tbl) do
+		print(k, v)
+	end
+	undmp_tbl.foo(1,8,9)
+
+	print('________')
+	local bar = function(x,y,z)
+		print(x+y+z)
+	end
+	local dmp_bar = DataDumper(bar, _, true)
+	print(dmp_bar)]]
+
+	a = function(x,y)
+		print(x+y)
+	end
+	b = a
+
+	print(a==b)
 end
 
 function final(self)
 	-- tcp_client
-	self.client:disconnect()
+	--self.client:disconnect()
 
 	-- tcp_server
-	self.server:stop()
+	--self.server:stop()
 end
 
 function update(self, dt)
 	-- tcp_client
-	if self.client then
+	--[[if self.client then
 		self.client:update()
-	end
+	end]]
 
 	-- tcp_server
-	self.server:update()
+	--self.server:update()
 end
 
 function on_message(self, message_id, message, sender)
