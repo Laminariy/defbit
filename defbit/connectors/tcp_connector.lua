@@ -57,7 +57,7 @@ function M.new_client(on_message, on_disconnect)
 
 		local client_socket, err = socket.connect(address, port)
 		if not client_socket or err then
-			print("connection to server failed "..err)
+			print("connection to server failed: "..err)
 			return nil, err
 		end
 		client_socket:settimeout(0)

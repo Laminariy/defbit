@@ -1,0 +1,68 @@
+local defbit = require "defbit.defbit"
+
+
+function init(self)
+	self.clients = {}
+	
+	local function on_disconnect(client)
+		print("client disconnected from server")
+
+		for i, cl in ipairs(self.clients) do
+			if cl == client then
+				table.remove(self.clients, i)
+			end
+		end
+	end
+
+	local function on_connect(client)
+		print("client connected")
+		table.insert(self.clients, client)
+		client.event:fire("hello_event", "hello_data")
+	end
+
+	self.server = defbit.server(8888, on_connect, on_disconnect)
+	local ok, err = self.server:start()
+	if ok then
+		print("server started")
+	end
+end
+
+function final(self)
+	self.server:stop()
+	for _, client in ipairs(self.clients) do
+		client:disconnect()
+	end
+end
+
+function update(self, dt)
+	self.server:update()
+
+	for _, client in ipairs(self.clients) do
+		client.event:fire("NOP")
+		client:update()
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	-- Add message-handling code here
+	-- Learn more: https://defold.com/manuals/message-passing/
+	-- Remove this function if not needed
+end
+
+function on_input(self, action_id, action)
+	-- Add input-handling code here. The game object this script is attached to
+	-- must have acquired input focus:
+	--
+	--    msg.post(".", "acquire_input_focus")
+	--
+	-- All mapped input bindings will be received. Mouse and touch input will
+	-- be received regardless of where on the screen it happened.
+	-- Learn more: https://defold.com/manuals/input/
+	-- Remove this function if not needed
+end
+
+function on_reload(self)
+	-- Add reload-handling code here
+	-- Learn more: https://defold.com/manuals/hot-reload/
+	-- Remove this function if not needed
+end
