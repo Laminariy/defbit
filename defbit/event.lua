@@ -15,6 +15,11 @@ function M.new_event(connection, parser)
 				listener(type, data)
 			end
 		end
+		if self.listeners["_all"] then
+			for _, listener in ipairs(self.listeners["_all"]) do
+				listener(type, data)
+			end
+		end
 	end
 
 
@@ -39,8 +44,11 @@ function M.new_event(connection, parser)
 	end
 
 	function event.remove_listener(self, type, listener)
+		if not type then
+			local type = "_all"
+		end
 		if self.listeners[type] then
-			for i, subscriber in pairs(self.listeners[type]) do
+			for i, subscriber in ipairs(self.listeners[type]) do
 				if listener == subscriber then
 					table.remove(self.listeners[type], i)
 					if #self.listeners[type] == 0 then

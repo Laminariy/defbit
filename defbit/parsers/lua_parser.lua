@@ -13,13 +13,17 @@ function M.encode(type, data)
 end
 
 function M.decode(data)
-	-- могут ли выбивать ошибки?
-	-- assert, pcall
-	local decoded = loadstring(data)
+	local decoded, err = loadstring(data)
+	if err then 
+		return {type='err'}, err
+	end
 	local env = {}
 	setfenv(decoded, env)
-	decoded = decoded()
-	return decoded
+	local status, decoded_data = pcall(decoded)
+	if not status then
+		return {type='err'}, decoded_data
+	end
+	return decoded_data
 end
 
 return M
