@@ -14,14 +14,14 @@ end
 
 function M.decode(data)
 	local decoded, err = loadstring(data)
-	if err then 
-		return {type='err'}, err
+	if err then
+		return {type='err', data=err}
 	end
-	local env = {}
+	local env = {loadstring=loadstring}
 	setfenv(decoded, env)
 	local status, decoded_data = pcall(decoded)
 	if not status then
-		return {type='err'}, decoded_data
+		return {type='err', data=decoded_data}
 	end
 	return decoded_data
 end
