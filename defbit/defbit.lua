@@ -74,8 +74,12 @@ function M.client(address, port, on_disconnect, connector, parser)
 				self.event:_trigger_listeners(data.data)
 			elseif data.type == 'shared' then
 
-			elseif data.type == 'rpc' then
-
+			elseif data.type == 'rpc_call' then
+				self.rpc:_get_call(data.data)
+			elseif data.type == 'rpc_execution' then
+				self.rpc:_get_execution(data.data)
+			elseif data.type == 'rpc_result' then
+				self.rpc:_get_result(data.data)
 			end
 		end
 

@@ -69,12 +69,22 @@ function init(self)
 	local dmp_bar = DataDumper(bar, _, true)
 	print(dmp_bar)]]
 
-	a = function(x,y)
+	--[[a = function(x,y)
 		print(x+y)
 	end
 	b = a
 
-	print(a==b)
+	print(a==b)]]
+
+	local function foo(x,y,z)
+		return z,y,x
+	end
+
+	local a = {foo(1, 10, 59)}
+	print(a)
+	for k, v in ipairs(a) do
+		print(k,v)
+	end
 end
 
 function final(self)
