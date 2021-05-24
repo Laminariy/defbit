@@ -27,7 +27,8 @@ function M.new_rpc(connection, parser)
 		}
 		local method = self.enviroment[call.method]
 		if method then
-			result.result = {method(unpack(call.args))}
+			local res = {pcall(method, unpack(call.args))}
+			result.result = {unpack(res, 2)}
 		else
 			result.result = {'error! method not exists'}
 		end
