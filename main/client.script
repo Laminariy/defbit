@@ -9,6 +9,31 @@ function init(self)
 	local ok, err = self.client:connect()
 	if ok then
 		print("connected to server")
+		self.client.rpc:call("ping", {}, function(res)
+			print(res)
+		end)
+
+		local function foo()
+			return ping()
+		end
+		self.client.rpc:execute(foo, {}, function(res)
+			print('ex '..res)
+		end)
+		self.client.shared:set_add_listener(function(shared_table)
+			print('server added new shared table')
+			for k,v in pairs(shared_table) do
+				print(k,v)
+			end
+			self.client.shared:set_update_listener(shared_table, function(shared_table, fields)
+				print('server updated some fields:')
+				for _, field in ipairs(fields) do
+					print(field..': '..shared_table[field])
+				end
+			end)
+		end)
+		self.client.shared:set_remove_listener(function(shared_table)
+			print('server removed shared table')
+		end)
 	end
 
 	self.client.event:set_listener("hello_event", function(type, data)
@@ -17,7 +42,7 @@ function init(self)
 	end)
 
 	self.client.event:set_listener("NOP", function(type, data)
-		print("NOP")
+		--print("NOP")
 	end)
 end
 

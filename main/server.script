@@ -18,6 +18,41 @@ function init(self)
 		print("client connected")
 		table.insert(self.clients, client)
 		client.event:fire("hello_event", "hello_data")
+		client.rpc:set_enviroment({ping = function()
+			print("get ping")
+			return "pong"
+		end})
+		client.shared:set_add_listener(function(shared_table)
+			print('client added new shared table')
+		end)
+		client.shared:set_remove_listener(function(shared_table)
+			print('client removed shared table')
+		end)
+		local shared_table = {
+			position = {x=1, y=9},
+			health = 9,
+			state = 'idle',
+			server_id = 0
+		}
+		local options = {
+			on_update = function(shared_table, fields)
+				print('client updated some fields:')
+				for _, field in ipairs(fields) do
+					print(field..': '..shared_table[field])
+				end
+			end,
+			del_access = 'both',
+			rights = {
+				position = 'client',
+				health = 'server',
+				state = 'both'
+			}
+		}
+		shared_table = client.shared:add(shared_table, options)
+		shared_table.position = 1
+		shared_table.health = 100
+		shared_table.state = 'run'
+		shared_table.server_id = 8
 	end
 
 	self.server = defbit.server(8888, on_connect, on_disconnect)
@@ -38,8 +73,9 @@ function update(self, dt)
 	self.server:update()
 
 	for _, client in ipairs(self.clients) do
-		client.event:fire("NOP")
+		--client.event:fire("NOP")
 		client:update()
+		client.shared:delta_sync()
 	end
 end
 

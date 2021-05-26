@@ -32,6 +32,7 @@ function M.server(port, on_connect, on_disconnect, connector, parser)
 		local function on_connect(client_socket)
 			local adress, port = client_socket:getpeername()
 			local client = M.client(address, port, self.on_disconnect, connector, parser)
+			client.shared.type = 'server'
 			local ok, err = client:connect(client_socket)
 			if ok then
 				self.on_connect(client)
@@ -85,8 +86,12 @@ function M.client(address, port, on_disconnect, connector, parser)
 			local data = self.parser.decode(data)
 			if data.type == 'event' then
 				self.event:_trigger_listeners(data.data)
-			elseif data.type == 'shared' then
-
+			elseif data.type == 'shared_add' then
+				self.shared:_get_new_table(data.data)
+			elseif data.type == 'shared_remove' then
+				self.shared:_get_removed_table(data.data)
+			elseif data.type == 'shared_sync' then
+				self.shared:_get_sync(data.data)
 			elseif data.type == 'rpc_call' then
 				self.rpc:_get_call(data.data)
 			elseif data.type == 'rpc_execution' then
