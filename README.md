@@ -223,14 +223,14 @@ Disconnect client from server.
 
 ## Event Reference
 
-### `event:fire(type, data)`
+### `event:fire(type[, data])`
 
 Sends event to server.
 
 **Parameters**
 
 - `type` <kbd>string</kbd> Event type.
-- `data` <kbd>table</kbd> Event data.
+- `data` <kbd>table</kbd> (_optional_) Event data.
 
 ### `event:set_listener([type,] listener)`
 
@@ -238,7 +238,7 @@ Set event listener.
 
 **Parameters**
 
-- `type` <kbd>string</kbd> Event type. If nil, listener will catch all events (_all type).
+- `type` <kbd>string</kbd> (_optional_) Event type. If nil, listener will catch all events (_all type).
 - `listener(type, data)` <kbd>function</kbd> Listener that catch events.
 
 ### `event:remove_listener([type,] listener)`
@@ -247,7 +247,7 @@ Removes event listener.
 
 **Parameters**
 
-- `type` <kbd>string</kbd> Event type. If nil type will be "_all".
+- `type` <kbd>string</kbd> (_optional_) Event type. If nil type will be "_all".
 - `listener(type, data)` <kbd>function</kbd> Listener that was registered by set_listener events.
 
 ## RPC Reference
