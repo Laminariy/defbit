@@ -225,7 +225,7 @@ Disconnect client from server.
 
 ### `event:fire(type[, data])`
 
-Sends event to server.
+Sends event to the other side.
 
 **Parameters**
 
@@ -248,7 +248,7 @@ Removes event listener.
 **Parameters**
 
 - `type` <kbd>string</kbd> (_optional_) Event type. If nil type will be "_all".
-- `listener(type, data)` <kbd>function</kbd> Listener that was registered by set_listener events.
+- `listener(type, data)` <kbd>function</kbd> Listener that was registered by set_listener.
 
 ## RPC Reference
 
@@ -268,7 +268,7 @@ Call method by name.
 
 - `method` <kbd>string</kbd> Method name.
 - `args` <kbd>table</kbd> Table with method arguments.
-- `on_result(res1, res2, ...)` <kbd>function</kbd> Result callback. Takes all the arguments returned by the method
+- `on_result(res1, res2, ...)` <kbd>function</kbd> Result callback. Takes all the arguments returned by the method.
 
 ### `rpc:execute(fn, args, on_result)`
 
@@ -278,7 +278,7 @@ Execute function on the other side.
 
 - `fn` <kbd>function</kbd> Function to be executed on the other side.
 - `args` <kbd>table</kbd> Table with method arguments.
-- `on_result(res1, res2, ...)` <kbd>function</kbd> Result callback. Takes all the arguments returned by the method
+- `on_result(res1, res2, ...)` <kbd>function</kbd> Result callback. Takes all the arguments returned by the function.
 
 ## Shared Reference
 
@@ -326,6 +326,7 @@ Set listener that will be called when the other side changes the data in the sha
 
 **Parameters**
 
+- `shared_table` <kbd>table</kbd> Shared table.
 - `listener(shared_table, fields)` <kbd>function</kbd> Function.
 
 ### `shared:delta_sync()`
@@ -338,6 +339,6 @@ Sync all data in shared tables.
 
 ## Issues and suggestions
 
-If you have any issues, questions or suggestions please [create an issue](https://github.com/Laminariy/vkminibridge/issues).
+If you have any issues, questions or suggestions please [create an issue](https://github.com/Laminariy/defbit/issues).
 
 You can also find me in [VK](https://vk.com/glorius_silver).
