@@ -34,6 +34,14 @@ function init(self)
 		self.client.shared:set_remove_listener(function(shared_table)
 			print('server removed shared table')
 		end)
+
+		local shared_table = {
+			status = "client tester!"
+		}
+		local options = {
+			rights = {status = 'both'}
+		}
+		self.client.shared:add(shared_table, options)
 	end
 
 	self.client.event:set_listener("hello_event", function(type, data)

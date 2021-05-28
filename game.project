@@ -13,5 +13,8 @@ input_method = HiddenInputField
 
 [project]
 title = defbit
-dependencies = https://github.com/defold/extension-websocket/archive/refs/tags/2.2.3.zip
+dependencies = 
+
+[library]
+include_dirs = defbit
 

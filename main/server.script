@@ -10,6 +10,7 @@ function init(self)
 		for i, cl in ipairs(self.clients) do
 			if cl == client then
 				table.remove(self.clients, i)
+				break
 			end
 		end
 	end
