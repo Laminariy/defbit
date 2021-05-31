@@ -78,8 +78,10 @@ function M.new_shared(connection, parser)
 			if meta.id == id then
 				local field_names = {}
 				for key, value in pairs(sync_table.fields) do
-					rawset(tbl, key, value)
-					table.insert(field_names, key)
+					if meta.fields[key].rights == 'both' or self.type ~= meta.fields[key].rights then
+						rawset(tbl, key, value)
+						table.insert(field_names, key)
+					end
 				end
 				if meta.on_update then
 					meta.on_update(tbl, field_names)
