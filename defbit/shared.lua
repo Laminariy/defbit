@@ -14,25 +14,23 @@ function M.new_shared(connection, parser)
 	}
 
 	function shared._get_new_table(self, shared_table)
-		local id, tbl, options = shared_table.id, shared_table.table, shared_table.options
+		local id, del_access, fields = shared_table.id, shared_table.del_access, shared_table.fields
 
+		local tbl = {}
 		local meta = {
 			id = id,
-			del_access = options.del_access or "both",
-			fields = {}, --{field_name = {value, rights, was_changed}}
-			was_changed = false,
-			on_update = options.on_update
+			_shared = true,
+			del_access = del_access,
+			fields = {} --{field_name = {value, rights, was_changed}}
 		}
 
-		for field, rights in pairs(options.rights) do
-			meta.fields[field] = {value = tbl[field], rights = rights, was_changed = false}
-			tbl[field] = nil
+		for key, value in pairs(fields) do
+			meta.fields[key] = {value = value.value, rights = value.rights, was_changed = false}
 		end
 
 		function meta.__newindex(tbl, key, value)
 			if meta.fields[key] then
 				if self.type == meta.fields[key].rights or meta.fields[key].rights == 'both' then
-					meta.was_changed = true
 					meta.fields[key].was_changed = true
 					meta.fields[key].value = value
 				end
@@ -71,6 +69,21 @@ function M.new_shared(connection, parser)
 		end
 	end
 
+	local function unparse_sh_fields(self, tbl, meta, fields)
+		-- TO DO: unparse
+		local field_names = {}
+		for key, value in pairs(fields) do
+			if meta.fields[key].rights == 'both' or self.type ~= meta.fields[key].rights then
+				if type(value) == 'table' then
+					
+				else
+					rawset(tbl, key, value)
+				end
+				table.insert(field_names, key)
+			end
+		end
+	end
+
 	function shared._get_sync(self, sync_table)
 		local id = sync_table.id
 		for _, tbl in ipairs(self.shared_tables) do
@@ -79,7 +92,11 @@ function M.new_shared(connection, parser)
 				local field_names = {}
 				for key, value in pairs(sync_table.fields) do
 					if meta.fields[key].rights == 'both' or self.type ~= meta.fields[key].rights then
-						rawset(tbl, key, value)
+						if type(value) == 'table' then
+							
+						else
+							rawset(tbl, key, value)
+						end
 						table.insert(field_names, key)
 					end
 				end
@@ -92,7 +109,9 @@ function M.new_shared(connection, parser)
 	end
 
 
-	function shared.add(self, tbl, options)
+	function shared.create(self, tbl, options)
+		-- TO DO: one shared table in many clients
+		-- was_changed on defbit.client, not in shared_table
 		--[[
 		options = {
 			on_update(table, fields),
@@ -102,34 +121,20 @@ function M.new_shared(connection, parser)
 		]]
 
 		local meta = {
-			id = self.type..'_'..self.shared_ids,
+			_shared = true,
 			del_access = options.del_access or "both",
 			fields = {}, --{field_name = {value, rights, was_changed}}
-			was_changed = false,
 			on_update = options.on_update
 		}
-
-		local sh_tbl = {}
 
 		for field, rights in pairs(options.rights) do
 			meta.fields[field] = {value = tbl[field], rights = rights, was_changed = false}
 			tbl[field] = nil
-			sh_tbl[field] = tbl[field]
 		end
-
-		local sh_options = {
-			rights = options.rights,
-			del_access = options.del_access
-		}
-		local data = self.parser.encode('shared_add', {id = self.type..'_'..self.shared_ids,
-														table = sh_tbl, 
-														options = sh_options})
-		self.connection:send(data)
 
 		function meta.__newindex(tbl, key, value)
 			if meta.fields[key] then
 				if self.type == meta.fields[key].rights or meta.fields[key].rights == 'both' then
-					meta.was_changed = true
 					meta.fields[key].was_changed = true
 					meta.fields[key].value = value
 				end
@@ -147,10 +152,28 @@ function M.new_shared(connection, parser)
 		end
 
 		setmetatable(tbl, meta)
-		table.insert(self.shared_tables, tbl)
-		self.shared_ids = self.shared_ids + 1
 
 		return tbl
+	end
+
+	function shared.add(self, shared_table)
+		local meta = getmetatable(shared_table)
+		meta.id = self.type..'_'..self.shared_ids
+		self.shared_ids = self.shared_ids + 1
+		local sh_table = {
+			id = meta.id,
+			del_access = meta.del_access,
+			fields = {}
+		}
+
+		for key, value in ipairs(meta.fields) do
+			sh_table.fields[key] = {value = value.value, rights = value.rights}
+		end
+
+		local data = self.parser.encode('shared_add', sh_table)
+		self.connection:send(data)
+
+		table.insert(self.shared_tables, shared_table)
 	end
 
 	function shared.remove(self, shared_table)
@@ -182,25 +205,54 @@ function M.new_shared(connection, parser)
 		meta.on_update = listener
 	end
 
+	local function parse_d_sh_fields(fields)
+		local sh_fields = {}
+
+		for field, data in pairs(fields) do
+			if data.was_changed then
+				sh_fields[field] = data.value
+				data.was_changed = false
+			end
+			if getmetatable(data.value)._shared then
+				local fields = getmetatable(data.value).fields
+				sh_fields[field] = parse_d_sh_fields(fields)
+			end
+		end
+
+		return sh_fields
+	end
+
 	function shared.delta_sync(self)
 		for _, tbl in ipairs(self.shared_tables) do
 			local meta = getmetatable(tbl)
-			if meta.was_changed then
-				local sync_tbl = {
-					id = meta.id,
-					fields = {}
-				}
-				for field, data in pairs(meta.fields) do
-					if data.was_changed then
-						sync_tbl.fields[field] = data.value
-						data.was_changed = false
-					end
-				end
+			local sync_tbl = {
+				id = meta.id,
+				fields = parse_d_sh_fields(meta.fields)
+			}
+
+			if next(sync_tbl.fields) then
 				local data = self.parser.encode('shared_sync', sync_tbl)
 				self.connection:send(data)
-				meta.was_changed = false
 			end
 		end
+	end
+
+	local function parse_f_sh_fields(self, fields)
+		local sh_fields = {}
+
+		for field, data in pairs(fields) do
+			if data.rights == self.type or data.rights == 'both' then
+				if getmetatable(data.value)._shared then
+					local fields = getmetatable(data.value).fields
+					sh_fields[field] = parse_f_sh_fields(self, fields)
+				else
+					sh_fields[field] = data.value
+				end
+			end
+			data.was_changed = false
+		end
+
+		return sh_fields
 	end
 
 	function shared.full_sync(self)
@@ -208,17 +260,13 @@ function M.new_shared(connection, parser)
 			local meta = getmetatable(tbl)
 			local sync_tbl = {
 				id = meta.id,
-				fields = {}
+				fields = parse_f_sh_fields(self, meta.fields)
 			}
-			for field, data in pairs(meta.fields) do
-				if data.rights == self.type or data.rights == 'both' then
-					sync_tbl.fields[field] = data.value
-				end
-				data.was_changed = false
+
+			if next(sync_tbl.fields) then
+				local data = self.parser.encode('shared_sync', sync_tbl)
+				self.connection:send(data)
 			end
-			local data = self.parser.encode('shared_sync', sync_tbl)
-			self.connection:send(data)
-			meta.was_changed = false
 		end
 	end
 
