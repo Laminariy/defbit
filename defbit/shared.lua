@@ -30,11 +30,13 @@ function M.new_shared(connection, parser)
 
 	function shared._get_new_table(self, shared_table)
 		local id, fields, options = shared_table.id, shared_table.fields, shared_table.options
-		local shared_table = self.create(fields)
+		local shared_table = self:create(fields)
 		local meta = getmetatable(shared_table)
 		meta.set_id(id)
-		options.type = self.type
-		meta.set_options(options)
+		if options then
+			options.type = self.type
+			meta.set_options(options)
+		end
 		table.insert(self.shared_tables, shared_table)
 
 		if self.add_listener then
@@ -71,7 +73,7 @@ function M.new_shared(connection, parser)
 	end
 
 
-	function shared.create(tbl)
+	function shared.create(self, tbl)
 		local meta = {
 			id = _,
 			options = _,
@@ -183,6 +185,11 @@ function M.new_shared(connection, parser)
 		return meta.__child
 	end
 
+	function shared.set_options(self, shared_table, options)
+		options.type = self.type
+		getmetatable(shared_table).set_options(options)
+	end
+
 	function shared.add(self, shared_tbl, options)
 		local meta = getmetatable(shared_tbl)
 		assert(meta.__is_shared, 'you must provide shared table')
@@ -190,8 +197,10 @@ function M.new_shared(connection, parser)
 		meta.set_id(self.type..'_'..self.shared_ids)
 		self.shared_ids = self.shared_ids + 1
 
-		options.type = self.type
-		meta.set_options(options)
+		if options then
+			options.type = self.type
+			meta.set_options(options)
+		end
 
 		table.insert(self.shared_tables, shared_tbl)
 

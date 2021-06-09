@@ -41,7 +41,7 @@ function init(self)
 		local options = {
 			rights = {status = 'both'}
 		}
-		shared_table = self.client.shared.create(shared_table)
+		shared_table = self.client.shared:create(shared_table)
 		self.client.shared:add(shared_table, options)
 	end
 
