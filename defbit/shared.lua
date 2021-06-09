@@ -33,6 +33,7 @@ function M.new_shared(connection, parser)
 		local shared_table = self.create(fields)
 		local meta = getmetatable(shared_table)
 		meta.set_id(id)
+		options.type = self.type
 		meta.set_options(options)
 		table.insert(self.shared_tables, shared_table)
 
@@ -84,9 +85,11 @@ function M.new_shared(connection, parser)
 		function meta.__newindex(tbl, key, value)
 			if meta.options then
 				local type, rights = meta.options.type, meta.options.rights
-				if rights[key] and type ~= rights[key] and rights[key] ~= 'both' then
-					return
+				if rights[key] and (type == rights[key] or rights[key] == 'both') then
+					meta.__shared_fields[key] = value
+					meta.__changed_fields[key] = true
 				end
+				return
 			end
 			meta.__shared_fields[key] = value
 			meta.__changed_fields[key] = true
@@ -134,7 +137,7 @@ function M.new_shared(connection, parser)
 			local changed = {}
 			changed.__is_shared = true
 			for key, _ in pairs(meta.__changed_fields) do
-				if getmetatable(meta.__shared_fields[key]).__is_shared then
+				if getmetatable(meta.__shared_fields[key]) and getmetatable(meta.__shared_fields[key]).__is_shared then
 					changed[key] = getmetatable(meta.__shared_fields[key]).get_changed_data()
 				else
 					changed[key] = meta.__shared_fields[key]
@@ -159,11 +162,12 @@ function M.new_shared(connection, parser)
 		function meta.set_changed_data(changed_data)
 			changed_data.__is_shared = nil
 			local changed_fields = {}
+			local typ = type -- fast fix
 			local type, rights = meta.options.type, meta.options.rights
 			for key, value in pairs(changed_data) do
 				if type ~= rights[key] or rights[key] == 'both' then
 					table.insert(changed_fields, key)
-					if value.__is_shared then
+					if typ(value) == 'table' and value.__is_shared then
 						getmetatable(meta.__shared_fields[key]).set_changed_data(value)
 					else
 						meta.__shared_fields[key] = value
@@ -231,9 +235,13 @@ function M.new_shared(connection, parser)
 				id = meta.id,
 				fields = meta.get_changed_data()
 			}
-			local data = self.parser.encode('shared_sync', sync_tbl)
-			self.connection:send(data)
-			meta.clear_changed_fields()
+
+			sync_tbl.fields.__is_shared = nil -- fast hack
+			if next(sync_tbl.fields) then
+				local data = self.parser.encode('shared_sync', sync_tbl)
+				self.connection:send(data)
+				meta.clear_changed_fields()
+			end
 		end
 	end
 
@@ -258,6 +266,10 @@ function M.new_shared(connection, parser)
 	function shared.set_remove_listener(self, listener)
 		-- listener(shared_table)
 		self.remove_listener = listener
+	end
+
+	function shared.set_update_listener(self, shared_table, listener)
+		getmetatable(shared_table).set_update_listener(listener)
 	end
 
 	return shared
