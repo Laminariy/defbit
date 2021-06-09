@@ -49,7 +49,8 @@ function init(self)
 				state = 'both'
 			}
 		}
-		shared_table = client.shared:add(shared_table, options)
+		shared_table = client.shared:create(shared_table)
+		client.shared:add(shared_table, options)
 		shared_table.position = 1
 		shared_table.health = 100
 		shared_table.state = 'run'

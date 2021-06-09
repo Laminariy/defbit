@@ -282,19 +282,36 @@ Execute function on the other side.
 
 ## Shared Reference
 
-### `shared:add(tbl, options)`
+### `shared:create(tbl)`
 
-Add new shared table.
+Returns new shared table.
 
 **Parameters**
 
 - `tbl` <kbd>table</kbd> Table to be synchronized between server and client.
+
+### `shared.set_options(shared_table, options)`
+
+Set options to shared table
+
+**Parameters**
+
+- `shared_table` <kbd>table</kbd> Shared table.
 - `options` <kbd>table</kbd> Options table.
 
 **Options**
 - `del_access` <kbd>string</kbd> Who can delete a table. Can be "server", "client" or "both".
 - `rights` <kbd>table</kbd> Table that describes who can change fields. Format is {field_name=rights}. Rights can be "server", "client" or "both".
 - `on_update(shared_table, fields)` <kbd>function</kbd> This function will be called when the other side changes the data in the table.
+
+### `shared:add(shared_table[, options])`
+
+Synchronize shared table between server and client.
+
+**Parameters**
+
+- `shared_table` <kbd>table</kbd> Shared table.
+- `options` <kbd>table</kbd> (_optional_) Options table.
 
 ### `shared:remove(shared_table)`
 

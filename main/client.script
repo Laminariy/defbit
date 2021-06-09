@@ -41,6 +41,7 @@ function init(self)
 		local options = {
 			rights = {status = 'both'}
 		}
+		shared_table = self.client.shared:create(shared_table)
 		self.client.shared:add(shared_table, options)
 	end
 
@@ -60,6 +61,7 @@ end
 
 function update(self, dt)
 	self.client:update()
+	self.client.shared:delta_sync()
 end
 
 function on_message(self, message_id, message, sender)
