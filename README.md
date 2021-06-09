@@ -63,7 +63,8 @@ local function on_connect(client)
 			end
 		end
 	}
-	shared_table = client.shared:add(shared_table, options)
+	shared_table = client.shared:create(shared_table)
+	client.shared:add(shared_table, options)
 end
 
 local function on_disconnect(client)
