@@ -302,8 +302,9 @@ Set options to shared table
 
 **Options**
 - `del_access` <kbd>string</kbd> Who can delete a table. Can be "server", "client" or "both".
-- `rights` <kbd>table</kbd> Table that describes who can change fields. Format is {field_name=rights}. Rights can be "server", "client" or "both".
-- `on_update(shared_table, fields)` <kbd>function</kbd> This function will be called when the other side changes the data in the table.
+- `rights` <kbd>table</kbd> (_optional_) Table that describes who can change fields. Format is {field_name=rights}. Rights can be "server", "client" or "both". If the field does not have a rule, it will not be synced.
+- `on_update(shared_table, fields)` <kbd>function</kbd> (_optional_) This function will be called when the other side changes the data in the table.
+- `sync_rules` <kbd>table</kbd> (_optional_) Table that describes when the fields are synchronized. Format is {field_name=rule}. Rule can be "delta", "full" or "both". Default is "both".
 
 ### `shared:add(shared_table[, options])`
 

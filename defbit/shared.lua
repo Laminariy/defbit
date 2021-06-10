@@ -118,10 +118,11 @@ function M.new_shared(connection, parser)
 		function meta.set_options(options)
 			--[[
 			options = {
-				type = 'client', 'server'
+				type = 'client', 'server',
 				on_update(table, fields),
 				rights = {field_name = "both", "server", "client"},
-				del_access = "server", "client", "both"
+				del_access = "server", "client", "both",
+				sync_rules = {field_name = "delta", "full", "both"}
 			}
 			]]
 			if options then
@@ -139,10 +140,15 @@ function M.new_shared(connection, parser)
 			local changed = {}
 			changed.__is_shared = true
 			for key, _ in pairs(meta.__changed_fields) do
-				if getmetatable(meta.__shared_fields[key]) and getmetatable(meta.__shared_fields[key]).__is_shared then
-					changed[key] = getmetatable(meta.__shared_fields[key]).get_changed_data()
-				else
-					changed[key] = meta.__shared_fields[key]
+				if meta.options and meta.options.sync_rules then
+					local rule = meta.options.sync_rules[key]
+				end
+				if not rule or rule == 'delta' or rule == 'both' then
+					if getmetatable(meta.__shared_fields[key]) and getmetatable(meta.__shared_fields[key]).__is_shared then
+						changed[key] = getmetatable(meta.__shared_fields[key]).get_changed_data()
+					else
+						changed[key] = meta.__shared_fields[key]
+					end
 				end
 			end
 			return changed
@@ -151,11 +157,19 @@ function M.new_shared(connection, parser)
 		function meta.get_full_data()
 			local data = {}
 			data.__is_shared = true
+			local type, rights = meta.options.type, meta.options.rights
 			for key, value in pairs(meta.__shared_fields) do
-				if getmetatable(value).__is_shared then
-					data[key] = getmetatable(value).get_full_data()
-				else
-					data[key] = value
+				if rights[key] and (type == rights[key] or rights[key] == 'both') then
+					if meta.options and meta.options.sync_rules then
+						local rule = meta.options.sync_rules[key]
+					end
+					if not rule or rule == 'full' or rule == 'both' then
+						if getmetatable(value).__is_shared then
+							data[key] = getmetatable(value).get_full_data()
+						else
+							data[key] = value
+						end
+					end
 				end
 			end
 			return data
