@@ -4,7 +4,7 @@ require "defbit.parsers.data_dumper"
 local M = {}
 
 function M.encode(type, data)
-	local data = {
+	data = {
 		type = type,
 		data = data
 	}

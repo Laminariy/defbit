@@ -21,7 +21,7 @@ function M.new_server(on_connect)
 	function server.update(self)
 		if self.server_socket then
 			local client_socket, err = self.server_socket:accept()
-			if client_socket then 
+			if client_socket then
 				client_socket:settimeout(0)
 				self.on_connect(client_socket)
 			end

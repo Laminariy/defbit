@@ -15,8 +15,8 @@ end
 
 
 function M.server(port, on_connect, on_disconnect, connector, parser)
-	local connector = connector or standart_connector
-	local parser = parser or standart_parser
+	connector = connector or standart_connector
+	parser = parser or standart_parser
 
 	local defbit_server = {
 		port = port,
@@ -30,7 +30,7 @@ function M.server(port, on_connect, on_disconnect, connector, parser)
 
 	function defbit_server.start(self)
 		local function on_connect(client_socket)
-			local adress, port = client_socket:getpeername()
+			local address, port = client_socket:getpeername()
 			local client = M.client(address, port, self.on_disconnect, connector, parser)
 			client.shared.type = 'server'
 			local ok, err = client:connect(client_socket)
@@ -65,8 +65,8 @@ function M.server(port, on_connect, on_disconnect, connector, parser)
 end
 
 function M.client(address, port, on_disconnect, connector, parser)
-	local connector = connector or standart_connector
-	local parser = parser or standart_parser
+	connector = connector or standart_connector
+	parser = parser or standart_parser
 
 	local defbit_client = {
 		address = address,
@@ -83,7 +83,7 @@ function M.client(address, port, on_disconnect, connector, parser)
 
 	function defbit_client.connect(self, client_socket)
 		local function on_message(connection, data)
-			local data = self.parser.decode(data)
+			data = self.parser.decode(data)
 			if data.type == 'event' then
 				self.event:_trigger_listeners(data.data)
 			elseif data.type == 'shared_add' then

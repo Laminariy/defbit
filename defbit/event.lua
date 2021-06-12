@@ -28,15 +28,13 @@ function M.new_event(connection, parser)
 		if data then
 			event.data = data
 		end
-		local data = self.parser.encode('event', event)
+		data = self.parser.encode('event', event)
 		self.connection:send(data)
 	end
 
 	function event.set_listener(self, type, listener)
 		-- listener(type, data)
-		if not type then
-			local type = "_all"
-		end
+		type = type or "_all"
 		if not self.listeners[type] then
 			self.listeners[type] = {}
 		end
@@ -44,9 +42,7 @@ function M.new_event(connection, parser)
 	end
 
 	function event.remove_listener(self, type, listener)
-		if not type then
-			local type = "_all"
-		end
+		type = type or "_all"
 		if self.listeners[type] then
 			for i, subscriber in ipairs(self.listeners[type]) do
 				if listener == subscriber then

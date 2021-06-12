@@ -30,7 +30,7 @@ function M.new_shared(connection, parser)
 
 	function shared._get_new_table(self, shared_table)
 		local id, fields, options = shared_table.id, shared_table.fields, shared_table.options
-		local shared_table = self:create(fields)
+		shared_table = self:create(fields)
 		local meta = getmetatable(shared_table)
 		meta.set_id(id)
 		if options then
