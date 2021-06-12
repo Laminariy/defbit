@@ -55,7 +55,7 @@ local function on_connect(client)
 			position = "client",
 			health = "server",
 			state = "both"
-		}
+		},
 		on_update = function(self, fields)
 			print("client changed some shared fields")
 			for _, field in ipairs(fields) do
